@@ -101,6 +101,22 @@ firstName="John"
 <Hello firstName="Jane"
        lastName="Doe" />
 
+// editorconfig support
+// [2, {indentMode: 'editorconfig', fallback: 4 }]
+// .editorconfig: indent_size = 2
+<Hello
+  firstName="Jane"
+  lastName="Doe"
+/>
+
+// editorconfig support
+// [2, {indentMode: 'editorconfig', fallback: 4 }]
+// No .editorconfig file exist or indent_size is not set: fallback setting (4) is applied
+<Hello
+    firstName="Jane"
+    lastName="Doe"
+/>
+
 // indent level increase on ternary operator (default setting)
 // [2, 2]
 ? <Hello

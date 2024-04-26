@@ -34,7 +34,7 @@ To enable checking the indentation of attributes or add indentation to logical e
 
 ```js
 ...
-"@stylistic/jsx/jsx-indent": [<enabled>, 'tab'|<number>, {checkAttributes: <boolean>, indentLogicalExpressions: <boolean>}]
+"@stylistic/jsx/jsx-indent": [<enabled>, 'tab'|<number>|'editorconfig', {checkAttributes: <boolean>, indentLogicalExpressions: <boolean>, fallback: 'tab'|<number>}]
 ...
 ```
 

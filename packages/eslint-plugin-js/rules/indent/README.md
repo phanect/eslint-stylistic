@@ -45,6 +45,20 @@ Or for tabbed indentation:
 }
 ```
 
+You can also follow EditorConfig:
+
+```json
+{
+    // .editorconfig: indent_size = 2
+    "indent": ["error", "editorconfig", {
+      // If no .editorconfig is detected,
+      // this rule follows the value set by `fallback`.
+      // In this case, two spaces.
+      fallback: 2,
+    }]
+}
+```
+
 Examples of **incorrect** code for this rule with the default options:
 
 ::: incorrect
@@ -102,6 +116,7 @@ This rule has an object option:
 - `"flatTernaryExpressions": true` (`false` by default) requires no indentation for ternary expressions which are nested in other ternary expressions.
 - `"offsetTernaryExpressions": true` (`false` by default) requires indentation for values of ternary expressions.
 - `"ignoreComments"` (default: false) can be used when comments do not need to be aligned with nodes on the previous or next line.
+- `"fallback"` is only used when the indent size is `"editorconfig"`. If your project does not have .editorconfig file, the value set here is used. Useful for sharable configs which may be used in the both projects with and without .editorconfig. If both `indent_style` / `indent_size` in .editorconfig nor `"fallback"` in this rule are not set, ESLint would raise an error.
 
 Level of indentation denotes the multiple of the indent specified. Example:
 
@@ -152,6 +167,90 @@ if (a) {
 		e=f;
 	}
 }
+```
+
+:::
+
+### EditorConfig support
+
+Examples of **incorrect** code for this rule with the `"editorconfig"` option:
+
+::: incorrect
+
+::: code-group
+
+```js [JS]
+/*eslint indent: ["error", "editorconfig", { fallback: 4 }]*/
+
+if (a) {
+    const b = 1;
+}
+```
+
+```ini [.editorconfig]
+[*]
+indent_style = space
+indent_size = 2
+```
+
+:::
+
+::: incorrect
+
+::: code-group
+
+```js [JS]
+/*eslint indent: ["error", "editorconfig", { fallback: 4 }]*/
+
+if (a) {
+  const b = 1;
+}
+```
+
+```ini [.editorconfig]
+# Empty
+# indent_style and indent_size are not set
+```
+
+:::
+
+Examples of **correct** code for this rule with the `"tab"` option:
+
+::: correct
+
+::: code-group
+
+```js [JS]
+/*eslint indent: ["error", "editorconfig", { fallback: 4 }]*/
+
+if (a) {
+  const b = 1;
+}
+```
+
+```ini [.editorconfig]
+[*]
+indent_style = space
+indent_size = 2
+```
+
+:::
+
+::: correct
+
+::: code-group
+
+```js [JS]
+/*eslint indent: ["error", "editorconfig", { fallback: 4 }]*/
+
+if (a) {
+    const b = 1;
+}
+```
+
+```ini [.editorconfig]
+# Empty
+# indent_style and indent_size are not set
 ```
 
 :::

@@ -23,6 +23,11 @@ This rule has a string option:
 
 - `"unix"` (default) enforces the usage of Unix line endings: `\n` for LF.
 - `"windows"` enforces the usage of Windows line endings: `\r\n` for CRLF.
+- `"editorconfig"` follow the configuration in .editorconfig.
+
+This rule has an object option:
+
+- `"fallback"`: is only used when the first option is `"editorconfig"`. If your project does not have .editorconfig file, the value set here is used to lint. Useful for sharable configs which may be used in the both projects with and without .editorconfig. `"unix"`, `"windows"`, or `"off"`.
 
 ### unix
 
@@ -83,6 +88,80 @@ var a = 'a', // \r\n
 function foo(params) { // \r\n
     // do stuff \r\n
 } // \r\n
+```
+
+:::
+
+### EditorConfig support
+
+Examples of **incorrect** code for this rule with the `"editorconfig"` option:
+
+::: incorrect
+
+::: code-group
+
+```js [JS]
+/*eslint linebreak-style: ["error", "editorconfig", { fallback: "windows" }]*/
+
+const a = 'a'; // \r\n
+```
+
+```ini [.editorconfig]
+[*]
+end_of_line = lf
+```
+
+:::
+
+::: incorrect
+
+::: code-group
+
+```js [JS]
+/*eslint linebreak-style: ["error", "editorconfig", { "fallback": "windows" }]*/
+
+const a = 'a'; // \n (because `"fallback"` is `"windows"` and this should be \r\n)
+```
+
+```ini [.editorconfig]
+# Empty
+# end_of_line is not set
+```
+
+:::
+
+Examples of **correct** code for this rule with the `"editorconfig"` option:
+
+::: correct
+
+::: code-group
+
+```js [JS]
+/*eslint linebreak-style: ["error", "editorconfig", { "fallback": "windows" }]*/
+
+const a = 'a'; // \n
+```
+
+```ini [.editorconfig]
+[*]
+end_of_line = lf
+```
+
+:::
+
+::: correct
+
+::: code-group
+
+```js [JS]
+/*eslint linebreak-style: ["error", "editorconfig", { "fallback": "windows" }]*/
+
+const a = 'a'; // \r\n (because `"fallback"` is `"windows"`)
+```
+
+```ini [.editorconfig]
+# Empty
+# end_of_line is not set
 ```
 
 :::

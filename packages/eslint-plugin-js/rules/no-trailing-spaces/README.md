@@ -46,6 +46,8 @@ This rule has an object option:
 - `"skipBlankLines": true` allows trailing whitespace on empty lines
 - `"ignoreComments": false` (default) disallows trailing whitespace in comment blocks
 - `"ignoreComments": true` allows trailing whitespace in comment blocks
+- `"editorconfig": true` follows .editorconfig's `trim_trailing_whitespace` setting.
+- `"fallback": "on|off"` sets behavior when .editorconfig does not exist or `trim_trailing_whitespace` is not set.
 
 ### skipBlankLines
 
@@ -80,6 +82,82 @@ Examples of **correct** code for this rule with the `{ "ignoreComments": true }`
  *
  * bar
  */
+```
+
+:::
+
+### EditorConfig support
+
+Examples of **incorrect** code for this rule with the `{ "editorconfig": [ true, ...]}` option:
+
+::: incorrect
+
+::: code-group
+
+```js [JS]
+/*eslint no-trailing-spaces: ["error", { "editorconfig": true, "fallback": "off" }]*/
+
+const foo = 0;/* trailing spaces */
+const baz = 5;/* trailing spaces */
+```
+
+```ini [.editorconfig]
+[*]
+trim_trailing_whitespace = true
+```
+
+:::
+
+::: incorrect
+
+::: code-group
+
+```js [JS]
+/*eslint no-trailing-spaces: ["error", { "editorconfig": true, "fallback": "on" }]*/
+
+const foo = 0;/* trailing spaces */
+const baz = 5;/* trailing spaces */
+```
+
+```ini [.editorconfig]
+# trim_trailing_whitespace is not set
+```
+
+:::
+
+Examples of **correct** code for this rule with the `{ "editorconfig": [ true, ...]}` option:
+
+::: correct
+
+::: code-group
+
+```js [JS]
+/*eslint no-trailing-spaces: ["error", { "editorconfig": true, "fallback": "off" ] }]*/
+
+// No trailing spaces under these lines
+const foo = 0;
+const baz = 5;
+```
+
+```ini [.editorconfig]
+trim_trailing_whitespace = true
+```
+
+:::
+
+::: correct
+
+::: code-group
+
+```js [JS]
+/*eslint no-trailing-spaces: ["error", { "editorconfig": true, "fallback": "off" }]*/
+
+const foo = 0;/* trailing spaces */
+const baz = 5;/* trailing spaces */
+```
+
+```ini [.editorconfig]
+# trim_trailing_whitespace is not set
 ```
 
 :::
