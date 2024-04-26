@@ -40,20 +40,40 @@ To enable checking the indentation of attributes or add indentation to logical e
 
 Examples of **incorrect** code for this rule:
 
+2 spaces indentation:
+
+::: incorrect
+
 ```jsx
-// 2 spaces indentation
-// [2, 2]
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 2 ] */
+
 <App>
     <Hello />
 </App>
+```
 
-// tab indentation
-// [2, 'tab']
+:::
+
+Tab indentation:
+
+::: incorrect
+
+```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 'tab' ] */
+
 <App>
   <Hello />
 </App>
 
-// [2, 2, {checkAttributes: true}]
+```
+
+:::
+
+::: incorrect
+
+```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 2, { checkAttributes: true }] */
+
 <App render={
   <Hello render={
     (bar) => <div>hi</div>
@@ -62,7 +82,15 @@ Examples of **incorrect** code for this rule:
   }>
 </App>
 
-// [2, 2, {indentLogicalExpressions: true}]
+```
+
+:::
+
+::: incorrect
+
+```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 2, { indentLogicalExpressions: true }] */
+
 <App>
   {condition && (
   <Hello />
@@ -72,27 +100,53 @@ Examples of **incorrect** code for this rule:
 
 Examples of **correct** code for this rule:
 
+2 spaces indentation:
+
+::: correct
+
 ```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 2 ] */
 
-// 2 spaces indentation
-// [2, 2]
 <App>
   <Hello />
 </App>
+```
 
-// tab indentation
-// [2, 'tab']
+:::
+
+Tab indentation:
+
+::: correct
+
+```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 'tab' ] */
+
 <App>
   <Hello />
 </App>
+```
 
-// no indentation
-// [2, 0]
+:::
+
+No indentation:
+
+::: correct
+
+```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 0 ] */
+
 <App>
 <Hello />
 </App>
+```
 
-// [2, 2, {checkAttributes: false}]
+:::
+
+::: correct
+
+```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 2, { checkAttributes: false }] */
+
 <App render={
   <Hello render={
     (bar) => <div>hi</div>
@@ -100,8 +154,15 @@ Examples of **correct** code for this rule:
   />
   }>
 </App>
+```
 
-// [2, 2, {indentLogicalExpressions: true}]
+:::
+
+::: correct
+
+```jsx
+/* eslint '@stylistic/jsx/jsx-indent': [ 'error', 2, { indentLogicalExpressions: true }] */
+
 <App>
   {condition && (
     <Hello />
