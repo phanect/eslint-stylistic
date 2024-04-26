@@ -30,7 +30,8 @@
  THE SOFTWARE.
  */
 
-import type { ASTNode, ReportFixFunction, Token, Tree } from '@shared/types'
+import type { ASTNode, JSONSchema, ReportFixFunction, Token, Tree } from '@shared/types'
+import { type Config, editorconfig, message } from '../../../shared/editorconfig'
 import { getFirstNodeInLine, isNodeFirstInLine } from '../../utils/ast'
 import { docsUrl } from '../../utils/docsUrl'
 import { isJSX, isReturningJSX } from '../../utils/jsx'
@@ -39,7 +40,18 @@ import type { MessageIds, RuleOptions } from './types'
 
 const messages = {
   wrongIndent: 'Expected indentation of {{needed}} {{type}} {{characters}} but found {{gotten}}.',
+  editorconfig: message('indent'),
 }
+
+const indentTypeCandidates: JSONSchema.JSONSchema4[] = [
+  {
+    type: 'string',
+    enum: ['tab'],
+  },
+  {
+    type: 'integer',
+  },
+]
 
 export default createRule<MessageIds, RuleOptions>({
   meta: {
@@ -55,12 +67,10 @@ export default createRule<MessageIds, RuleOptions>({
     schema: [
       {
         anyOf: [
+          ...indentTypeCandidates,
           {
             type: 'string',
-            enum: ['tab'],
-          },
-          {
-            type: 'integer',
+            enum: ['editorconfig'],
           },
         ],
       },
@@ -73,6 +83,15 @@ export default createRule<MessageIds, RuleOptions>({
           indentLogicalExpressions: {
             type: 'boolean',
           },
+          fallback: {
+            oneOf: [
+              ...indentTypeCandidates,
+              {
+                type: 'string',
+                enum: ['off'],
+              },
+            ],
+          },
         },
         additionalProperties: false,
       },
@@ -84,19 +103,46 @@ export default createRule<MessageIds, RuleOptions>({
     let indentType = 'space'
     let indentSize = 4
 
-    if (context.options.length) {
-      if (context.options[0] === 'tab') {
-        indentSize = 1
-        indentType = 'tab'
+    // This error should not happen, but required to suppress errors raised by TypeScript
+    if (!context.options[0])
+      throw new Error('The first argument has to be number or \'tab\'')
+
+    let indent: Config<'indent'> | 'editorconfig' = context.options[0]
+    const options = context.options[1] || {}
+
+    if (indent === 'editorconfig') {
+      try {
+        indent = editorconfig.getOptions('indent', {
+          lintTargetPath: context.filename,
+          fallback: options?.fallback,
+        })
       }
-      else if (typeof context.options[0] === 'number') {
-        indentSize = context.options[0]
-        indentType = 'space'
+      catch (err) {
+        if (err instanceof Error && err.cause === 'NO_FALLBACK_AND_EDITORCONFIG') {
+          context.report({
+            loc: {
+              line: 0,
+              column: 0,
+            },
+            messageId: 'editorconfig',
+          })
+        }
+        else {
+          throw err
+        }
       }
     }
 
+    if (indent === 'tab') {
+      indentSize = 1
+      indentType = 'tab'
+    }
+    else if (typeof indent === 'number') {
+      indentSize = indent
+      indentType = 'space'
+    }
+
     const indentChar = indentType === 'space' ? ' ' : '\t'
-    const options = context.options[1] || {}
     const checkAttributes = options.checkAttributes || false
     const indentLogicalExpressions = options.indentLogicalExpressions || false
 

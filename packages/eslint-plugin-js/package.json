@@ -116,6 +116,7 @@
   "dependencies": {
     "@types/eslint": "^8.56.10",
     "acorn": "^8.11.3",
+    "editorconfig": "^2.0.0",
     "eslint-visitor-keys": "^4.0.0",
     "espree": "^10.0.1"
   },

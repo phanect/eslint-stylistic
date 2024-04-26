@@ -30,7 +30,8 @@
  THE SOFTWARE.
  */
 
-import type { ASTNode } from '@shared/types'
+import type { ASTNode, JSONSchema } from '@shared/types'
+import { type Config, editorconfig, message } from '../../../shared/editorconfig'
 import { isNodeFirstInLine } from '../../utils/ast'
 import { createRule } from '../../utils/createRule'
 import { docsUrl } from '../../utils/docsUrl'
@@ -38,7 +39,17 @@ import type { MessageIds, RuleOptions } from './types'
 
 const messages = {
   wrongIndent: 'Expected indentation of {{needed}} {{type}} {{characters}} but found {{gotten}}.',
+  editorconfig: message('jsx-indent-props'),
 }
+const indentModeOptions: JSONSchema.JSONSchema4[] = [
+  {
+    type: 'string',
+    enum: ['tab', 'first'],
+  },
+  {
+    type: 'integer',
+  },
+]
 
 export default createRule<MessageIds, RuleOptions>({
   meta: {
@@ -54,29 +65,28 @@ export default createRule<MessageIds, RuleOptions>({
 
     schema: [{
       anyOf: [
+        ...indentModeOptions,
         {
           type: 'string',
-          enum: ['tab', 'first'],
-        },
-        {
-          type: 'integer',
+          enum: ['editorconfig'],
         },
         {
           type: 'object',
           properties: {
             indentMode: {
               anyOf: [
+                ...indentModeOptions,
                 {
                   type: 'string',
-                  enum: ['tab', 'first'],
-                },
-                {
-                  type: 'integer',
+                  enum: ['editorconfig'],
                 },
               ],
             },
             ignoreTernaryOperator: {
               type: 'boolean',
+            },
+            fallback: {
+              anyOf: indentModeOptions,
             },
           },
         },
@@ -97,9 +107,32 @@ export default createRule<MessageIds, RuleOptions>({
 
     if (context.options.length) {
       const isConfigObject = typeof options === 'object'
-      const indentMode = isConfigObject
+      let indentMode: Config<'jsx-indent-props'> | 'first' | 'editorconfig' | undefined = isConfigObject
         ? options.indentMode
         : options
+
+      if (indentMode === 'editorconfig') {
+        try {
+          indentMode = editorconfig.getOptions('jsx-indent-props', {
+            lintTargetPath: context.filename,
+            fallback: typeof options === 'object' ? options.fallback : undefined,
+          })
+        }
+        catch (err) {
+          if (err instanceof Error && err.cause === 'NO_FALLBACK_AND_EDITORCONFIG') {
+            context.report({
+              loc: {
+                line: 0,
+                column: 0,
+              },
+              messageId: 'editorconfig',
+            })
+          }
+          else {
+            throw err
+          }
+        }
+      }
 
       if (indentMode === 'first') {
         indentSize = 'first'

@@ -7,6 +7,7 @@
  */
 
 import type { ASTNode, JSONSchema, NodeTypes, RuleFunction, RuleListener, SourceCode, Token, Tree } from '@shared/types'
+import { type Config, editorconfig, message } from '../../../shared/editorconfig'
 import { STATEMENT_LIST_PARENTS, createGlobalLinebreakMatcher, isClosingBraceToken, isClosingBracketToken, isClosingParenToken, isColonToken, isCommentToken, isEqToken, isNotClosingParenToken, isNotOpeningParenToken, isOpeningBraceToken, isOpeningBracketToken, isOpeningParenToken, isQuestionDotToken, isSemicolonToken, isTokenOnSameLine } from '../../utils/ast-utils'
 import { createRule } from '../../utils/createRule'
 import type { MessageIds, RuleOptions } from './types'
@@ -462,6 +463,17 @@ class OffsetStorage {
   }
 }
 
+const INDENT_TYPE_CANDIDATES_SCHEMA: JSONSchema.JSONSchema4[] = [
+  {
+    type: 'string',
+    enum: ['tab'],
+  },
+  {
+    type: 'integer',
+    minimum: 0,
+  },
+]
+
 const ELEMENT_LIST_SCHEMA: JSONSchema.JSONSchema4 = {
   oneOf: [
     {
@@ -489,13 +501,10 @@ export default createRule<MessageIds, RuleOptions>({
     schema: [
       {
         oneOf: [
+          ...INDENT_TYPE_CANDIDATES_SCHEMA,
           {
             type: 'string',
-            enum: ['tab'],
-          },
-          {
-            type: 'integer',
-            minimum: 0,
+            enum: ['editorconfig'],
           },
         ],
       },
@@ -609,12 +618,22 @@ export default createRule<MessageIds, RuleOptions>({
             type: 'boolean',
             default: false,
           },
+          fallback: {
+            oneOf: [
+              ...INDENT_TYPE_CANDIDATES_SCHEMA,
+              {
+                type: 'string',
+                enum: ['off'],
+              },
+            ],
+          },
         },
         additionalProperties: false,
       },
     ],
     messages: {
       wrongIndentation: 'Expected indentation of {{expected}} but found {{actual}}.',
+      editorconfig: message('indent'),
     },
   },
 
@@ -657,27 +676,50 @@ export default createRule<MessageIds, RuleOptions>({
       offsetTernaryExpressions: false,
     }
 
-    if (context.options.length) {
-      const [indent, userOptions] = context.options
+    // This error should not happen, but required to suppress errors raised by TypeScript
+    if (!context.options[0])
+      throw new Error('The first argument has to be number or \'tab\'')
 
-      if (indent === 'tab') {
-        indentSize = 1
-        indentType = 'tab'
+    let indent: Config<'indent'> | 'editorconfig' = context.options[0]
+    const userOptions = context.options[1]
+
+    if (indent === 'editorconfig') {
+      try {
+        indent = editorconfig.getOptions('indent', { lintTargetPath: context.filename, fallback: userOptions?.fallback })
       }
-      else if (typeof indent === 'number') {
-        indentSize = indent
-        indentType = 'space'
+      catch (err) {
+        if (err instanceof Error && err.cause === 'NO_FALLBACK_AND_EDITORCONFIG') {
+          context.report({
+            loc: {
+              line: 0,
+              column: 0,
+            },
+            messageId: 'editorconfig',
+          })
+        }
+        else {
+          throw err
+        }
       }
+    }
 
-      if (userOptions) {
-        Object.assign(options, userOptions)
+    if (indent === 'tab') {
+      indentSize = 1
+      indentType = 'tab'
+    }
+    else if (typeof indent === 'number') {
+      indentSize = indent
+      indentType = 'space'
+    }
 
-        if (typeof userOptions.VariableDeclarator === 'number' || userOptions.VariableDeclarator === 'first') {
-          options.VariableDeclarator = {
-            var: userOptions.VariableDeclarator,
-            let: userOptions.VariableDeclarator,
-            const: userOptions.VariableDeclarator,
-          }
+    if (userOptions) {
+      Object.assign(options, userOptions)
+
+      if (typeof userOptions.VariableDeclarator === 'number' || userOptions.VariableDeclarator === 'first') {
+        options.VariableDeclarator = {
+          var: userOptions.VariableDeclarator,
+          let: userOptions.VariableDeclarator,
+          const: userOptions.VariableDeclarator,
         }
       }
     }

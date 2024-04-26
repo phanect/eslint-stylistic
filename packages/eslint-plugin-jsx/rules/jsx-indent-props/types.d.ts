@@ -3,11 +3,13 @@
 export type Schema0 =
   | ('tab' | 'first')
   | number
+  | 'editorconfig'
   | {
-    indentMode?: ('tab' | 'first') | number
+    indentMode?: ('tab' | 'first') | number | 'editorconfig'
     ignoreTernaryOperator?: boolean
+    fallback?: ('tab' | 'first') | number
     [k: string]: unknown
   }
 
 export type RuleOptions = [Schema0?]
-export type MessageIds = 'wrongIndent'
+export type MessageIds = 'wrongIndent' | 'editorconfig'

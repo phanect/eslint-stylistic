@@ -1,6 +1,6 @@
 /* GENERATED, DO NOT EDIT DIRECTLY */
 
-export type Schema0 = 'tab' | number
+export type Schema0 = 'tab' | number | 'editorconfig'
 
 export interface Schema1 {
   SwitchCase?: number
@@ -34,7 +34,8 @@ export interface Schema1 {
   offsetTernaryExpressions?: boolean
   ignoredNodes?: string[]
   ignoreComments?: boolean
+  fallback?: 'tab' | number | 'off'
 }
 
 export type RuleOptions = [Schema0?, Schema1?]
-export type MessageIds = 'wrongIndentation'
+export type MessageIds = 'wrongIndentation' | 'editorconfig'

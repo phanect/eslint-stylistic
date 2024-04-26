@@ -6,7 +6,10 @@
 import type { ReportFixFunction, Tree } from '@shared/types'
 import { createGlobalLinebreakMatcher } from '../../utils/ast-utils'
 import { createRule } from '../../utils/createRule'
+import { type Config, editorconfig, message } from '../../../shared/editorconfig'
 import type { MessageIds, RuleOptions } from './types'
+
+const options = ['unix', 'windows']
 
 export default createRule<MessageIds, RuleOptions>({
   meta: {
@@ -22,12 +25,28 @@ export default createRule<MessageIds, RuleOptions>({
     schema: [
       {
         type: 'string',
-        enum: ['unix', 'windows'],
+        enum: [
+          ...options,
+          'editorconfig',
+        ],
+      },
+      {
+        type: 'object',
+        properties: {
+          fallback: {
+            type: 'string',
+            enum: [
+              ...options,
+              'off',
+            ],
+          },
+        },
       },
     ],
     messages: {
       expectedLF: 'Expected linebreaks to be \'LF\' but found \'CRLF\'.',
       expectedCRLF: 'Expected linebreaks to be \'CRLF\' but found \'LF\'.',
+      editorconfig: message('linebreak-style'),
     },
   },
 
@@ -49,7 +68,32 @@ export default createRule<MessageIds, RuleOptions>({
 
     return {
       Program: function checkForLinebreakStyle(node) {
-        const linebreakStyle = context.options[0] || 'unix'
+        let linebreakStyle: Config<'linebreak-style'> | 'editorconfig' = context.options[0] || 'unix'
+        const fallback = context.options[1]?.fallback
+
+        if (linebreakStyle === 'editorconfig') {
+          try {
+            linebreakStyle = editorconfig.getOptions('linebreak-style', {
+              lintTargetPath: context.filename,
+              fallback,
+            })
+          }
+          catch (err) {
+            if (err instanceof Error && err.cause === 'NO_FALLBACK_AND_EDITORCONFIG') {
+              context.report({
+                loc: {
+                  line: 0,
+                  column: 0,
+                },
+                messageId: 'editorconfig',
+              })
+            }
+            else {
+              throw err
+            }
+          }
+        }
+
         const expectedLF = linebreakStyle === 'unix'
         const expectedLFChars = expectedLF ? '\n' : '\r\n'
         const source = sourceCode.getText()

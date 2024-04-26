@@ -21,6 +21,9 @@
     "docs:build": "pnpm -C docs run docs:build",
     "play:lint": "pnpm -C playground run lint"
   },
+  "dependencies": {
+    "editorconfig": "^2.0.0"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^2.17.0",
     "@antfu/eslint-define-config": "1.23.0-2",

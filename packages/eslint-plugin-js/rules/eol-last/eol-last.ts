@@ -4,7 +4,10 @@
  */
 
 import { createRule } from '../../utils/createRule'
+import { type Config, editorconfig, message } from '../../../shared/editorconfig'
 import type { MessageIds, RuleOptions } from './types'
+
+const options = ['always', 'never'] as const
 
 export default createRule<MessageIds, RuleOptions>({
   meta: {
@@ -20,13 +23,33 @@ export default createRule<MessageIds, RuleOptions>({
     schema: [
       {
         type: 'string',
-        enum: ['always', 'never', 'unix', 'windows'],
+        enum: [
+          ...options,
+          'editorconfig',
+
+          // legacy
+          'unix',
+          'windows',
+        ],
+      },
+      {
+        type: 'object',
+        properties: {
+          fallback: {
+            type: 'string',
+            enum: [
+              ...options,
+              'off',
+            ],
+          },
+        },
       },
     ],
 
     messages: {
       missing: 'Newline required at end of file but not found.',
       unexpected: 'Newline not allowed at end of file.',
+      editorconfig: message('eol-last'),
     },
   },
   create(context) {
@@ -50,8 +73,29 @@ export default createRule<MessageIds, RuleOptions>({
         if (!src.length)
           return
 
-        let mode = context.options[0] || 'always'
+        let mode: Config<'eol-last'> | 'editorconfig' = context.options[0] || 'always'
+        const fallback = context.options[1]?.fallback
         let appendCRLF = false
+
+        if (mode === 'editorconfig') {
+          try {
+            mode = editorconfig.getOptions('eol-last', { lintTargetPath: context.filename, fallback })
+          }
+          catch (err) {
+            if (err instanceof Error && err.cause === 'NO_FALLBACK_AND_EDITORCONFIG') {
+              context.report({
+                loc: {
+                  line: 0,
+                  column: 0,
+                },
+                messageId: 'editorconfig',
+              })
+            }
+            else {
+              throw err
+            }
+          }
+        }
 
         if (mode === 'unix') {
           // `"unix"` should behave exactly as `"always"`
@@ -62,6 +106,10 @@ export default createRule<MessageIds, RuleOptions>({
           mode = 'always'
           appendCRLF = true
         }
+
+        if (mode === 'off')
+          return // Essentially disable this rule
+
         if (mode === 'always' && !endsWithNewline) {
           // File is not newline-terminated, but should be
           context.report({

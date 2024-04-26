@@ -6,6 +6,7 @@
 import type { ASTNode, Tree } from '@shared/types'
 import { createGlobalLinebreakMatcher } from '../../utils/ast-utils'
 import { createRule } from '../../utils/createRule'
+import { editorconfig, message } from '../../../shared/editorconfig'
 import type { MessageIds, RuleOptions } from './types'
 
 export default createRule<MessageIds, RuleOptions>({
@@ -31,6 +32,17 @@ export default createRule<MessageIds, RuleOptions>({
             type: 'boolean',
             default: false,
           },
+          editorconfig: {
+            type: 'boolean',
+            default: false,
+          },
+          fallback: {
+            type: 'string',
+            enum: [
+              'on',
+              'off',
+            ],
+          },
         },
         additionalProperties: false,
       },
@@ -38,6 +50,7 @@ export default createRule<MessageIds, RuleOptions>({
 
     messages: {
       trailingSpace: 'Trailing spaces not allowed.',
+      editorconfig: message('linebreak-style'),
     },
   },
 
@@ -93,6 +106,35 @@ export default createRule<MessageIds, RuleOptions>({
       })
 
       return lines
+    }
+
+    if (options.editorconfig === true) {
+      try {
+        const enabled = editorconfig.getOptions('no-trailing-spaces', {
+          lintTargetPath: context.filename,
+          fallback: options.fallback,
+        })
+
+        if (enabled === 'off') {
+          // Essentially disable this rule if `trim_trailing_whitespace` is not set
+          // in .editorconfig and `fallback` option of this ESLint rule is 'off'.
+          return
+        }
+      }
+      catch (err) {
+        if (err instanceof Error && err.cause === 'NO_FALLBACK_AND_EDITORCONFIG') {
+          context.report({
+            loc: {
+              line: 0,
+              column: 0,
+            },
+            messageId: 'editorconfig',
+          })
+        }
+        else {
+          throw err
+        }
+      }
     }
 
     return {
