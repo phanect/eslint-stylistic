@@ -77,7 +77,7 @@ Examples of **correct** code for this rule:
 // tab indentation
 // [2, 'tab']
 <Hello
-  firstName="John"
+	firstName="John"
 />
 
 // no indentation
