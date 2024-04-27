@@ -658,16 +658,17 @@ export default createRule<MessageIds, RuleOptions>({
     }
 
     if (context.options.length) {
-      if (context.options[0] === 'tab') {
+      const [indent, userOptions] = context.options
+
+      if (indent === 'tab') {
         indentSize = 1
         indentType = 'tab'
       }
       else {
-        indentSize = context.options[0] ?? indentSize
+        indentSize = indent ?? indentSize
         indentType = 'space'
       }
 
-      const userOptions = context.options[1]
       if (userOptions) {
         Object.assign(options, userOptions)
 
