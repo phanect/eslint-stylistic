@@ -11,6 +11,7 @@ export default antfu(
       '**/fixtures/**',
       '**/playground/**',
       'packages/metadata/src/metadata.ts',
+      '**/*.alias.md',
     ],
     jsx: true,
     markdown: false,
