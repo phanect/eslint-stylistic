@@ -664,8 +664,8 @@ export default createRule<MessageIds, RuleOptions>({
         indentSize = 1
         indentType = 'tab'
       }
-      else {
-        indentSize = indent ?? indentSize
+      else if (typeof indent === 'number') {
+        indentSize = indent
         indentType = 'space'
       }
 
