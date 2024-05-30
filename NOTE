@@ -1,0 +1,2 @@
+現在は各パッケージに editorconfig をインストールしているが、editorconfig パッケージを使っているのは packages/shared/editorconfig.ts のみなので、私だったら editorconfig パッケージを @stylistic/eslint-plugin-* パッケージでは使っていないと勘違いして editorconfig を削除してしまうかもしれない。
+packages/shared/ 以下を、`"private": true` とした @stylistic/shared パッケージとし、@stylistic/shared を editorconfig パッケージに依存させるのはどうか?
