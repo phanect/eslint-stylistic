@@ -5,7 +5,6 @@ import fs from 'fs-extra'
 import { execa } from 'execa'
 import fg from 'fast-glob'
 import type { Linter } from 'eslint'
-import type { StylisticCustomizeOptions } from '@stylistic/eslint-plugin'
 
 const fixturesDir = fileURLToPath(new URL('fixtures', import.meta.url))
 
@@ -16,16 +15,26 @@ afterAll(async () => {
   await fs.rm('_fixtures', { recursive: true, force: true })
 })
 
-runWithConfig('editorconfig', {}, {
-  indent: "editorconfig",
-})
+runWithFlatConfig('editorconfig-jsts', [{
+  '@stylistic/eol-last': ['error', 'editorconfig', {
+    fallback: 'always',
+  }],
+  '@stylistic/linebreak-style': ['error', 'editorconfig', {
+    fallback: 'unix',
+  }],
+  '@stylistic/no-trailing-spaces': ['error', {
+    editorconfig: true,
+    fallback: 'on',
+  }],
+}])
 
-
-function runWithConfig(name: string, configs: StylisticCustomizeOptions | string, ...items: Linter[]) {
+function runWithFlatConfig(name: string, configs: Linter.FlatConfig['rules'][]) {
   it.concurrent(name, async ({ expect }) => {
     const from = resolve(fixturesDir, 'input')
     const output = resolve(fixturesDir, 'output', name)
     const target = resolve('_fixtures', name)
+
+    await fs.rm(target, { recursive: true, force: true })
 
     await fs.copy(from, target, {
       filter: (src) => {
@@ -43,7 +52,7 @@ export default [
     files: ['**/*.?([cm])js'],
   },
   {
-    files: ['**/*.?([cm])jsx', '**/*.?([cm])tsx'],
+    files: ['*.jsx', '*.tsx'],
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
@@ -53,7 +62,7 @@ export default [
     }
   },
   {
-    files: ['**/*.?([cm])ts'],
+    files: ['*.ts'],
     languageOptions: {
       parser: parserTs,
       parserOptions: {
@@ -62,7 +71,7 @@ export default [
     }
   },
   {
-    files: ['**/*.vue'],
+    files: ['*.vue'],
     languageOptions: {
       parser: parserVue,
       parserOptions: {
@@ -75,12 +84,7 @@ export default [
       },
     }
   },
-  ${
-    typeof configs === 'string'
-      ? `stylistic.configs['${configs}']`
-      : `stylistic.configs.customize(${JSON.stringify(configs)})`
-  },
-  ...${JSON.stringify(items) ?? []},
+  ...${JSON.stringify(configs) ?? []},
 ]
   `)
 
