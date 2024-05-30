@@ -96,9 +96,9 @@ export default createRule<MessageIds, RuleOptions>({
     let ignoreTernaryOperator = false
 
     if (context.options.length) {
-      const isConfigObject = typeof context.options[0] === 'object'
+      const isConfigObject = typeof options === 'object'
       const indentMode = isConfigObject
-        ? typeof options === 'object' && options.indentMode
+        ? options.indentMode
         : options
 
       if (indentMode === 'first') {
